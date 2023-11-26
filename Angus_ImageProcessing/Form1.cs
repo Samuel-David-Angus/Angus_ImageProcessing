@@ -1,9 +1,29 @@
+using System.Collections.Generic;
+using WebCamLib;
+using HNUDIP;
+
 namespace Angus_ImageProcessing
 {
     public partial class Form1 : Form
     {
         Bitmap loadedImg, processedImg, bgImg;
         bool webcam_on = false;
+
+        Device[] devices = DeviceManager.GetAllDevices();
+        Device webcam = DeviceManager.GetDevice(0);
+        webCamMode mode = webCamMode.COPY;
+        System.Windows.Forms.Timer t;
+        ImageProcess2.BitmapFilter filter = new ImageProcess2.BitmapFilter();
+
+        enum webCamMode
+        {
+            COPY,
+            GREYSCALE,
+            INVERSION,
+            HISTOGRAM,
+            SEPIA,
+            SUBTRACT
+        }
         public Form1()
         {
             InitializeComponent();
@@ -12,6 +32,43 @@ namespace Angus_ImageProcessing
         private void Form1_Load(object sender, EventArgs e)
         {
             label1.Text = "webcam: off";
+            t = new System.Windows.Forms.Timer();
+            t.Interval = 55;
+            t.Tick += new EventHandler(t_tick);
+        }
+
+        unsafe void t_tick(object sender, EventArgs e)
+        {
+            IDataObject data;
+            Image bmap;
+            devices[0].Sendmessage();
+            data = Clipboard.GetDataObject();
+            bmap = (Image)(data.GetData("System.Drawing.Bitmap", true));
+
+            Bitmap b = new Bitmap(bmap);
+            switch (mode)
+            {
+                case webCamMode.COPY:
+                    pictureBox2.Image = b;        
+                    break;
+                case webCamMode.GREYSCALE:
+                    ImageProcess2.BitmapFilter.GrayScale(b);
+                    pictureBox2.Image = b;
+                    break;
+                case webCamMode.INVERSION:
+                    ImageProcess2.BitmapFilter.Invert(b);
+                    pictureBox2.Image = b;
+                    break; 
+                case webCamMode.HISTOGRAM:
+                    ImageProcess.Histogram(ref b, ref processedImg);
+                    pictureBox2.Image = b;
+                    break; 
+                case webCamMode.SUBTRACT:
+                    ImageProcess2.BitmapFilter.Subtract(b, bgImg, Color.Green, 100);
+                    pictureBox2.Image = b;
+                    break;
+            }
+
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -33,6 +90,7 @@ namespace Angus_ImageProcessing
 
         private void basicCopyToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.COPY;
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -187,11 +245,19 @@ namespace Angus_ImageProcessing
             if (webcam_on)
             {
                 label1.Text = "webcam: on";
+
+                
+                webcam.ShowWindow(pictureBox1);
+                
+
+                t.Start();
+
             } else
             {
+                t.Stop();
                 label1.Text = "webcam: off";
             }
-            
+
             
 
         }

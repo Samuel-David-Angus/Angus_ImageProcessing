@@ -445,8 +445,63 @@ namespace ImageProcess2
 
 			return  BitmapFilter.Conv3x3(b, m);
 		}
+        public static bool Subtract(Bitmap b, Bitmap bg, Color greenScreen, int threshold)
+        {
+            // GDI+ still lies to us - the return format is BGR, NOT RGB.
+            BitmapData bmData = b.LockBits(new Rectangle(0, 0, b.Width, b.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
+            BitmapData bgData = bg.LockBits(new Rectangle(0, 0, bg.Width, bg.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
 
-		public static bool EdgeDetectConvolution(Bitmap b, short nType, byte nThreshold)
+            int stride = bmData.Stride;
+            System.IntPtr Scan0 = bmData.Scan0;
+
+            int strideBg = bgData.Stride;
+            System.IntPtr Scan0Bg = bgData.Scan0;
+
+            unsafe
+            {
+                byte* p = (byte*)(void*)Scan0;
+                byte* pBg = (byte*)(void*)Scan0Bg;
+
+                int nOffset = stride - b.Width * 4;
+
+                byte red, green, blue;
+
+
+                for (int y = 0; y < b.Height; ++y)
+                {
+                    for (int x = 0; x < b.Width; ++x)
+                    {
+                        int offset = (y * stride) + (x * 4);
+                        int offsetBg = (y * strideBg) + (x * 4);
+                        // Read the color of the current pixel
+                        Color pixelColor = System.Drawing.Color.FromArgb(p[offset + 3], p[offset + 2], p[offset + 1], p[offset]);
+
+                        // Calculate the difference between the current pixel and the green screen color
+                        int diffR = Math.Abs(pixelColor.R - greenScreen.R);
+                        int diffG = Math.Abs(pixelColor.G - greenScreen.G);
+                        int diffB = Math.Abs(pixelColor.B - greenScreen.B);
+
+                        // If the pixel is close to the green screen color, make it transparent
+                        if (diffR <= threshold && diffG <= threshold && diffB <= threshold
+                            && offset + 3 < bmData.Stride * bmData.Height
+                            && offsetBg + 3 < bgData.Stride * bgData.Height)
+                        {
+                            p[offset + 3] = pBg[offsetBg + 3];
+                            p[offset + 2] = pBg[offsetBg + 2];
+                            p[offset + 1] = pBg[offsetBg + 1];
+                            p[offset] = pBg[offsetBg];
+                        }
+
+                    }
+                }
+            }
+
+            b.UnlockBits(bmData);
+            bg.UnlockBits(bgData);
+
+            return true;
+        }
+        public static bool EdgeDetectConvolution(Bitmap b, short nType, byte nThreshold)
 		{
 			ConvMatrix m = new ConvMatrix();
 
