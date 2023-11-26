@@ -91,6 +91,10 @@ namespace Angus_ImageProcessing
         private void basicCopyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             mode = webCamMode.COPY;
+            if (webcam_on)
+            {
+                return;
+            }
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -105,6 +109,11 @@ namespace Angus_ImageProcessing
 
         private void greyscaleToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.GREYSCALE;
+            if (webcam_on)
+            {
+                return;
+            }
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -121,6 +130,11 @@ namespace Angus_ImageProcessing
 
         private void colorInversionToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.INVERSION;
+            if (webcam_on)
+            {
+                return;
+            }
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -135,6 +149,11 @@ namespace Angus_ImageProcessing
 
         private void histogramToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.HISTOGRAM;
+            if (webcam_on)
+            {
+                return;
+            }
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -177,6 +196,11 @@ namespace Angus_ImageProcessing
 
         private void sepiaToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.SEPIA;
+            if (webcam_on)
+            {
+                return;
+            }
             processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
             for (int x = 0; x < loadedImg.Width; x++)
             {
@@ -211,6 +235,11 @@ namespace Angus_ImageProcessing
 
         private void subtractToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            mode = webCamMode.SUBTRACT;
+            if (webcam_on)
+            {
+                return;
+            }
             Color mygreen = Color.FromArgb(0, 255, 0);
             int greygreen = (mygreen.R + mygreen.G + mygreen.B) / 3;
             int threshold = 5;
