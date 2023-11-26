@@ -46,6 +46,7 @@ namespace Angus_ImageProcessing
             bmap = (Image)(data.GetData("System.Drawing.Bitmap", true));
 
             Bitmap b = new Bitmap(bmap);
+            pictureBox1.Image = (Bitmap)b.Clone();
             switch (mode)
             {
                 case webCamMode.COPY:
@@ -61,13 +62,29 @@ namespace Angus_ImageProcessing
                     break; 
                 case webCamMode.HISTOGRAM:
                     ImageProcess.Histogram(ref b, ref processedImg);
-                    pictureBox2.Image = b;
+                    pictureBox2.Image = processedImg;
                     break; 
                 case webCamMode.SUBTRACT:
                     ImageProcess2.BitmapFilter.Subtract(b, bgImg, Color.Green, 100);
                     pictureBox2.Image = b;
                     break;
-            }
+                case webCamMode.SEPIA:
+                    processedImg = new Bitmap(b.Width, b.Height);
+                    for (int x = 0; x < b.Width; x++)
+                    {
+                        for (int y = 0; y < b.Height; y++)
+                        {
+                            Color pixel = b.GetPixel(x, y);
+                            int outRed = (int)Math.Min(255, (pixel.R * 0.393) + (pixel.G * 0.769) + (pixel.B * 0.189));
+                            int outGreen = (int)Math.Min(255, (pixel.R * .349) + (pixel.G * .686) + (pixel.B * .168));
+                            int outBlue = (int)Math.Min(255, (pixel.R * .272) + (pixel.G * .534) + (pixel.B * .131));
+                            processedImg.SetPixel(x, y, Color.FromArgb(outRed, outGreen, outBlue));
+                        }
+                    }
+                    pictureBox2.Image = processedImg;
+                  
+                    break;
+                         }
 
         }
 
