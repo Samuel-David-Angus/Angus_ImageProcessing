@@ -47,6 +47,7 @@
             openFileDialog2 = new OpenFileDialog();
             button4 = new Button();
             label1 = new Label();
+            comboBox1 = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             menuStrip1.SuspendLayout();
@@ -132,7 +133,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(62, 406);
+            button1.Location = new Point(16, 406);
             button1.Name = "button1";
             button1.Size = new Size(174, 34);
             button1.TabIndex = 3;
@@ -185,7 +186,7 @@
             // 
             // button4
             // 
-            button4.Location = new Point(253, 406);
+            button4.Location = new Point(207, 406);
             button4.Name = "button4";
             button4.Size = new Size(166, 34);
             button4.TabIndex = 7;
@@ -196,17 +197,26 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(440, 411);
+            label1.Location = new Point(394, 411);
             label1.Name = "label1";
             label1.Size = new Size(59, 25);
             label1.TabIndex = 8;
             label1.Text = "label1";
+            // 
+            // comboBox1
+            // 
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Location = new Point(533, 464);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(182, 33);
+            comboBox1.TabIndex = 9;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1249, 922);
+            Controls.Add(comboBox1);
             Controls.Add(label1);
             Controls.Add(button4);
             Controls.Add(button3);
@@ -249,5 +259,6 @@
         private ToolStripMenuItem subtractToolStripMenuItem;
         private Button button4;
         private Label label1;
+        private ComboBox comboBox1;
     }
 }

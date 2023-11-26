@@ -1,11 +1,17 @@
 using System.Collections.Generic;
 using WebCamLib;
 using HNUDIP;
+using AForge.Video;
+using AForge.Video.DirectShow;
+
 
 namespace Angus_ImageProcessing
 {
     public partial class Form1 : Form
     {
+        FilterInfoCollection filterInfoCollection;
+        VideoCaptureDevice videoCaptureDevice;
+
         Bitmap loadedImg, processedImg, bgImg;
         bool webcam_on = false;
 
@@ -13,7 +19,7 @@ namespace Angus_ImageProcessing
         Device webcam = DeviceManager.GetDevice(0);
         webCamMode mode = webCamMode.COPY;
         System.Windows.Forms.Timer t;
-        ImageProcess2.BitmapFilter filter = new ImageProcess2.BitmapFilter();
+
 
         enum webCamMode
         {
@@ -32,44 +38,16 @@ namespace Angus_ImageProcessing
         private void Form1_Load(object sender, EventArgs e)
         {
             label1.Text = "webcam: off";
-            t = new System.Windows.Forms.Timer();
-            t.Interval = 55;
-            t.Tick += new EventHandler(t_tick);
-        }
-
-        unsafe void t_tick(object sender, EventArgs e)
-        {
-            IDataObject data;
-            Image bmap;
-            devices[0].Sendmessage();
-            data = Clipboard.GetDataObject();
-            bmap = (Image)(data.GetData("System.Drawing.Bitmap", true));
-
-            Bitmap b = new Bitmap(bmap);
-            switch (mode)
+            filterInfoCollection = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            foreach (FilterInfo filterInfo in filterInfoCollection)
             {
-                case webCamMode.COPY:
-                    pictureBox2.Image = b;        
-                    break;
-                case webCamMode.GREYSCALE:
-                    ImageProcess2.BitmapFilter.GrayScale(b);
-                    pictureBox2.Image = b;
-                    break;
-                case webCamMode.INVERSION:
-                    ImageProcess2.BitmapFilter.Invert(b);
-                    pictureBox2.Image = b;
-                    break; 
-                case webCamMode.HISTOGRAM:
-                    ImageProcess.Histogram(ref b, ref processedImg);
-                    pictureBox2.Image = b;
-                    break; 
-                case webCamMode.SUBTRACT:
-                    ImageProcess2.BitmapFilter.Subtract(b, bgImg, Color.Green, 100);
-                    pictureBox2.Image = b;
-                    break;
+                comboBox1.Items.Add(filterInfo.Name);
             }
-
+            comboBox1.SelectedIndex = 0;
+            videoCaptureDevice = new VideoCaptureDevice();
         }
+
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -268,27 +246,81 @@ namespace Angus_ImageProcessing
 
         private void button4_Click(object sender, EventArgs e)
         {
-           
+
             webcam_on = !webcam_on;
             button1.Enabled = !webcam_on;
+            comboBox1.Enabled = button1.Enabled;
             if (webcam_on)
             {
                 label1.Text = "webcam: on";
+                videoCaptureDevice = new VideoCaptureDevice(filterInfoCollection[comboBox1.SelectedIndex].MonikerString);
+                videoCaptureDevice.NewFrame += VideoCaptureDevice_NewFrame;
+                videoCaptureDevice.Start();
 
-                
-                webcam.ShowWindow(pictureBox1);
-                
-
-                t.Start();
-
-            } else
+            }
+            else
             {
-                t.Stop();
+                if (videoCaptureDevice.IsRunning)
+                {
+                    try
+                    {
+                        videoCaptureDevice.Stop();
+                    }
+                    catch (Exception)
+                    {
+
+                        
+                    }
+                    
+                }
                 label1.Text = "webcam: off";
             }
 
-            
 
+
+        }
+        private void VideoCaptureDevice_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            Bitmap b = (Bitmap)eventArgs.Frame.Clone();
+            pictureBox1.Image = (Bitmap)b.Clone();
+            switch (mode)
+            {
+                case webCamMode.COPY:
+                    pictureBox2.Image = b;
+                    break;
+                case webCamMode.GREYSCALE:
+                    ImageProcess2.BitmapFilter.GrayScale(b);
+                    pictureBox2.Image = b;
+                    break;
+                case webCamMode.INVERSION:
+                    ImageProcess2.BitmapFilter.Invert(b);
+                    pictureBox2.Image = b;
+                    break;
+                case webCamMode.HISTOGRAM:
+                    ImageProcess.Histogram(ref b, ref processedImg);
+                    pictureBox2.Image = processedImg;
+                    break;
+                case webCamMode.SUBTRACT:
+                    ImageProcess2.BitmapFilter.Subtract(b, bgImg, Color.Green, 100);
+                    pictureBox2.Image = b;
+                    break;
+                case webCamMode.SEPIA:
+                    processedImg = new Bitmap(b.Width, b.Height);
+                    for (int x = 0; x < b.Width; x++)
+                    {
+                        for (int y = 0; y < b.Height; y++)
+                        {
+                            Color pixel = b.GetPixel(x, y);
+                            int outRed = (int)Math.Min(255, (pixel.R * 0.393) + (pixel.G * 0.769) + (pixel.B * 0.189));
+                            int outGreen = (int)Math.Min(255, (pixel.R * .349) + (pixel.G * .686) + (pixel.B * .168));
+                            int outBlue = (int)Math.Min(255, (pixel.R * .272) + (pixel.G * .534) + (pixel.B * .131));
+                            processedImg.SetPixel(x, y, Color.FromArgb(outRed, outGreen, outBlue));
+                        }
+                    }
+                    pictureBox2.Image = processedImg;
+                  
+                    break;
+            }
         }
     }
 }
