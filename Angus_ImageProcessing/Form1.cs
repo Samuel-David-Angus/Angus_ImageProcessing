@@ -1,0 +1,199 @@
+namespace Angus_ImageProcessing
+{
+    public partial class Form1 : Form
+    {
+        Bitmap loadedImg, processedImg, bgImg;
+        bool webcam_on = false;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            label1.Text = "webcam: off";
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.ShowDialog();
+
+        }
+
+        private void openFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            loadedImg = new Bitmap(openFileDialog1.FileName);
+            pictureBox1.Image = loadedImg;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.ShowDialog();
+        }
+
+        private void basicCopyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    processedImg.SetPixel(x, y, pixel);
+                }
+            }
+            pictureBox2.Image = processedImg;
+        }
+
+        private void greyscaleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    int greyValue = (pixel.R + pixel.G + pixel.B) / 3;
+                    Color greyShade = Color.FromArgb(greyValue, greyValue, greyValue);
+                    processedImg.SetPixel(x, y, greyShade);
+                }
+            }
+            pictureBox2.Image = processedImg;
+        }
+
+        private void colorInversionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    processedImg.SetPixel(x, y, Color.FromArgb(255 - pixel.R, 255 - pixel.G, 255 - pixel.B));
+                }
+            }
+            pictureBox2.Image = processedImg;
+        }
+
+        private void histogramToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    int greyValue = (pixel.R + pixel.G + pixel.B) / 3;
+                    Color greyShade = Color.FromArgb(greyValue, greyValue, greyValue);
+                    processedImg.SetPixel(x, y, greyShade);
+                }
+            }
+            Color sample;
+            int[] hist = new int[256];
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    sample = processedImg.GetPixel(x, y);
+                    hist[sample.R]++;
+                }
+            }
+            Bitmap hgraph = new Bitmap(256, 800);
+            int h = hgraph.Height - 1;
+            for (int x = 0; x < 256; x++)
+            {
+                int limit = (int)Math.Min(799, hist[x] / 5);
+                limit = h - limit;
+                int y;
+                for (y = h; y >= limit; y--)
+                {
+                    hgraph.SetPixel(x, y, Color.Black);
+                }
+                for (; y >= 0; y--)
+                {
+                    hgraph.SetPixel(x, y, Color.White);
+                }
+            }
+            pictureBox2.Image = hgraph;
+        }
+
+        private void sepiaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    int outRed = (int)Math.Min(255, (pixel.R * 0.393) + (pixel.G * 0.769) + (pixel.B * 0.189));
+                    int outGreen = (int)Math.Min(255, (pixel.R * .349) + (pixel.G * .686) + (pixel.B * .168));
+                    int outBlue = (int)Math.Min(255, (pixel.R * .272) + (pixel.G * .534) + (pixel.B * .131));
+                    processedImg.SetPixel(x, y, Color.FromArgb(outRed, outGreen, outBlue));
+                }
+            }
+            pictureBox2.Image = processedImg;
+        }
+
+        private void saveFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            processedImg.Save(saveFileDialog1.FileName);
+        }
+
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            openFileDialog2.ShowDialog();
+        }
+
+        private void openFileDialog2_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            bgImg = new Bitmap(openFileDialog2.FileName);
+            pictureBox3.Image = bgImg;
+        }
+
+        private void subtractToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Color mygreen = Color.FromArgb(0, 255, 0);
+            int greygreen = (mygreen.R + mygreen.G + mygreen.B) / 3;
+            int threshold = 5;
+
+            processedImg = new Bitmap(loadedImg.Width, loadedImg.Height);
+            for (int x = 0; x < loadedImg.Width; x++)
+            {
+                for (int y = 0; y < loadedImg.Height; y++)
+                {
+                    Color pixel = loadedImg.GetPixel(x, y);
+                    Color backpixel = bgImg.GetPixel(x, y);
+                    int greyValue = (pixel.R + pixel.G + pixel.B) / 3;
+                    int subtractValue = Math.Abs(greyValue - greygreen);
+                    if (subtractValue > threshold)
+                    {
+                        processedImg.SetPixel(x, y, pixel);
+                    }
+                    else
+                    {
+                        processedImg.SetPixel(x, y, backpixel);
+                    }
+                }
+            }
+            pictureBox2.Image = processedImg;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+           
+            webcam_on = !webcam_on;
+            button1.Enabled = !webcam_on;
+            if (webcam_on)
+            {
+                label1.Text = "webcam: on";
+            } else
+            {
+                label1.Text = "webcam: off";
+            }
+            
+            
+
+        }
+    }
+}
