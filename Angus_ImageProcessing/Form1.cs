@@ -264,7 +264,7 @@ namespace Angus_ImageProcessing
                 {
                     try
                     {
-                        videoCaptureDevice.Stop();
+                        videoCaptureDevice.SignalToStop();
                     }
                     catch (Exception)
                     {
